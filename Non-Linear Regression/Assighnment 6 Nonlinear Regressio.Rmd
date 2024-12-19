@@ -1,0 +1,164 @@
+---
+title: "Assighnment 6:Nonlinear Regression"
+author: " "
+date: "2024-10-06"
+output: html_document
+---
+
+# Step 1: Importing and cleaning data 
+
+```{r}
+# Load necessary libraries
+library(tidyverse)
+
+# Load the dataset
+df <- read.csv('StudentPerformanceFactors.csv')
+
+# Convert categorical columns to numeric using dummy encoding
+df <- df %>%
+  mutate_if(is.factor, as.numeric)
+
+# Check for missing values
+sapply(df, function(x) sum(is.na(x)))
+
+# Replace blanks with 0
+df[is.na(df)] <- 0 # Replace NAs with 0
+
+# Select a few relevant variables
+selected_vars <- df %>% select(Attendance, Previous_Scores, Motivation_Level, Exam_Score)
+
+# Convert Motivation_Level from character to factor and then to numeric
+selected_vars$Motivation_Level <- as.numeric(factor(selected_vars$Motivation_Level, levels = c("Low", "Medium", "High")))
+
+# Check the structure of selected_vars
+str(selected_vars)
+
+```
+
+
+# Step 2: Visualizing Results
+
+```{r}
+# Use pairs to visualize relationships
+pairs(selected_vars, panel = panel.smooth)
+
+```
+
+## Explanation of Output 
+
+The pairs plot shows the relationships between selected variables. Using the existing elements in my model, the following attributes will be used: a. Attendance b. Previous Scores c. Motivation Level d. Exam Score Diagonal figures show graphs of each variable’s distribution. The figure also has a clear, ascending linear pattern, suggesting that better performance in the exam is associated with increased attendance. Previous Scores and Exam Scores, as well as Motivation Level and Exam Scores, are plotted below in two different figures, and it can be noted that there is no evident pattern between Previous Scores and Exam Scores. At the same time, the Motivation level seems to have a covariable but weaker and non-linear relation with Exam Scores. These observations are depicted by the red smoothed trend lines as follows, with different levels of correlation as marked by the most significant correlation coefficient between Attendance and Exam Score. In light of these findings, there could be more separate explorations to verify these trends.
+
+
+
+# Step 3: Choose and Run a Nonlinear Model
+
+```{r}
+# Fit a polynomial regression model (degree 2)
+model_nonlinear <- lm(Exam_Score ~ poly(Attendance, 2) + poly(Previous_Scores, 2) + poly(Motivation_Level, 2), data = selected_vars)
+
+# Show the summary of the model
+summary(model_nonlinear)
+
+```
+
+# Result explanations 
+
+This nonlinear model uses polynomial regression at degree 2 modelling Exam _Score against the independent variables Attendance, Previous_Scores, and Motivation_Level. The adjusted R squared score of (0.3804) indicates that the model can explain about (38%) of the variability of Exam_Score. The detected substantial significant predictors are Attendance, Previous_Scores and Motivation_Level with large positive effects of their first-degree terms on Exam_Score: Attendance p < 2e-16, Previous_Scores p < 2e-16 and Motivation_Level p < 2e-16. Similarly, for all variables, the second-degree terms are insignificant (p > 0.05), suggesting no extra advantage to using higher-degree terms. The residual standard error of (3.062) indicates a relatively high variability in exam scores not accounted for through the model.
+
+# Step 4: Model Results and Visualize the model results:
+
+```{r}
+## Visualizing the model Result
+# Plot the actual vs predicted values
+predicted_values <- predict(model_nonlinear, newdata = selected_vars)
+
+# Create a scatter plot for actual vs predicted values
+plot(selected_vars$Exam_Score, predicted_values, xlab = "Actual Exam Score", ylab = "Predicted Exam Score", main = "Actual vs Predicted Exam Score (Nonlinear Model)")
+abline(0, 1, col = "red") # Add a reference line
+
+```
+
+## Explanations of the model results 
+
+This graph  presents the actual and model-fitted raw scores on the exam based on a nonlinear model. This red line, transcendent on the graph, is the reference line of an ideal prediction where the actual values should match the predicted values. It consists of points where most predicted values (y-axis) range from 64 to 72, irrespective of the actual exam scores (x-axis). This means the model works better with lower actual exam scores of 60-75 and yields underpredictions for higher actual exam scores. This means that though the model can explain some of the variation for lower exam results, there is room for improvement in explaining variation for improved exam performance. Hence, the prediction quality becomes low.
+
+## Justification for the model  chosen  
+
+Polynomial regression model (degree 2) was used because it can describe a nonlinear relationship between independent variables (Attendance, previous scores, and motivation level) and exam Scores. This model permits nonlinear relationships, which may help predict the existing performance compared to the linear model. However, while all the first-degree terms were significant predictors of visitation, the second-degree terms were not, meaning there is no reason to use a more complex model. The adjusted (R² of 0.3804) shows moderate fitness; consequently, the model license accounts for 38% of the examination score variability.
+
+
+# Step 5: Comparison  to Linear Model
+
+```{r}
+# Fit a linear regression model
+model_linear <- lm(Exam_Score ~ Attendance + Previous_Scores + Motivation_Level, data = selected_vars)
+
+# Show the summary of the linear model
+summary(model_linear)
+
+# Predict using the linear model
+predicted_linear <- predict(model_linear, newdata = selected_vars)
+
+# Plot for comparison
+plot(selected_vars$Exam_Score, predicted_values, col = "blue", pch = 16, xlab = "Actual Exam Score", ylab = "Predicted Exam Score", main = "Comparison of Nonlinear and Linear Predictions")
+points(selected_vars$Exam_Score, predicted_linear, col = "green", pch = 16)
+legend("topleft", legend = c("Nonlinear Predictions", "Linear Predictions"), col = c("blue", "green"), pch = 16)
+abline(0, 1, col = "red") # Add a reference line
+
+```
+
+## Model comparison Explanations 
+
+The performance comparison between the two models summarized that both models exhibit a similar level of performance. Examining the linear model's results produces an adjusted R² of 0.3801, which indicates that the model accounts for nearly 38% of Exam Scores' variability; the nonlinear model, on the other hand, has an adjusted R² of 0.380 4. These two models mark Attendance, Previous Scores, and Motivation Level as variables that predict the result (p < 2e-16). The residual standard error of the linear model (3.063) is slightly higher than the nonlinear model (3.062), meaning that adding polynomial terms does not impact model fit. Therefore, the linear model we analyzed above is much more straightforward and equally effective.
+
+
+The graph indicates the actual exam scores, the nonlinear model which predicts the scores and the linear model scores. Both models yield strikingly similar results for the exam score and its variations ranging between 60 and 75, as apparent from equal blue (nonlinear) and green (linear) dots. For actual scores above 75, they both underpredict, but the linear model (green) shows more fluctuation and broader predictions than the nonlinear model (blue), which stays in the lower range of (62-72). The horizontal red line shows the hypothetical case for which the values of the model are equal to the corresponding actual values. As can be seen, the two models could be more reliable in predicting higher scores above 80.
+
+
+
+
+# Step 6: Interpret and Evaluate Results
+
+```{r}
+# Calculate Mean Squared Error (MSE) for both models
+mse_nonlinear <- mean((selected_vars$Exam_Score - predicted_values)^2)
+mse_linear <- mean((selected_vars$Exam_Score - predicted_linear)^2)
+
+cat("Mean Squared Error (Nonlinear Model):", mse_nonlinear, "\n")
+cat("Mean Squared Error (Linear Model):", mse_linear, "\n")
+
+```
+
+
+## Explanation of result 
+
+Mean Squared Error (MSE) is applied to compare the performance of the nonlinear and the linear models in terms of their capability to predict Exam_Score. Therefore, the MSE for the nonlinear model is 9.368, and for the Linear model, we have 9.376. In this case, the nonlinear model has a slightly lower MSE in the exam scores' prediction than the linear one. However, what comes as a surprise is that the change of MSE is relatively insignificant, so introducing nonlinearity by including polynomial terms up to degree 2 does not remarkably enhance the model's ability to fit. This suggests that a linear model could be as equitable as the nonlinear model regarding this dataset, and the polynomial terms are not required.
+
+
+
+# General interpretations and evaluations 
+
+
+The simple nonlinear regression test shows that even with polynomial regression analysis of the second degree, the variability in the exam scores can only be partially explained. Using Attendance, Previous Scores, and Motivation Level as the predictor variables, the regression model acquired a moderate indication of the exam performance’s variance with an adjusted R² of (0.3804). While the first-degree terms are found to be good predictors, the second-degree terms are insignificant and do not add any extra explanation. The Mean Squared Error (MSE) of the nonlinear model is (9.368), thus is slightly lower than the linear model’s MSE (9.376), which suggests that the increased model complexity of the nonlinear approach does not improve the measure of accuracy in this case.
+
+This observation suggests that the added polynomial terms of the nonlinear model add little value when compared to both models. The adjusted R² and MSE values denoted a slight variation when the nonlinear and linear models were used, and both captured an approximately similar amount of variability in exam scores (<38%) while indicating similar over-prediction of low and under-prediction of high exam scores. The findings indicate that though increasing model complexity leads to very marginal improvement in fit, they do not help improve the model’s performance. Thus, a linear equation-based model yields are comparable to a polynomial model for this dataset, showing that polynomial terms are not required.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

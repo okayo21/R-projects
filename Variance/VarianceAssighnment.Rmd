@@ -1,0 +1,108 @@
+---
+title: "Variance Assighnment"
+output: html_document
+date: "2024-09-09"
+---
+
+## Importing data 
+This R code initializes the required packages, ggplot2 for creating visualization and dplyr for data manipulation. It then imports a dataset called ‘MentalHealthSurvey. csv’ into the program using the read. CSV function is called for this kind of file, and the file is given the specifications of mental_health_data. 
+```{r}
+# Load necessary libraries
+library(ggplot2)  # For plotting histograms
+library(dplyr)    # For data manipulation
+
+# Import the dataset
+mental_health_data <- read.csv("MentalHealthSurvey.csv")
+
+```
+
+## Select 2 Numeric Variables and Plot Histograms
+
+In the following R code, two histograms are drawn using the ggplot2 package to show distributions in the given mental_health_data data set. The first is a histogram of the depression levels using blue bars and a black outline, where the x-axis shows ‘Depression Level’ and the y-axis ‘Frequency.’ The second one uses green bars with a black border to show the ‘Frequency’ of ‘Academic Pressure’ through the x-axis and y-axis in a bin width of 1 to group the data to show the frequency of different levels in each variable.
+
+```{r}
+# Plot histogram for depression
+ggplot(mental_health_data, aes(x = depression)) +
+  geom_histogram(binwidth = 1, fill = "blue", color = "black") +
+  labs(title = "Histogram of Depression", x = "Depression Level", y = "Frequency")
+
+# Plot histogram for academic_pressure
+ggplot(mental_health_data, aes(x = academic_pressure)) +
+  geom_histogram(binwidth = 1, fill = "green", color = "black") +
+  labs(title = "Histogram of Academic Pressure", x = "Academic Pressure", y = "Frequency")
+
+```
+## Result Interpretation
+The result reveals two histograms that represent the distribution of the participants’ depression level and academic pressure. The histogram of depression levels shows that the majority of respondents yielded a depression level of 3, which was above 20 occurrences. Level 2 is closely similar to it, with a frequency of around 18-20, while levels 4 and 5 have the lowest frequency, nearly 12. The pressure histogram about the academics has revealed that most responders rated the pressure level at 4 with more than 30 counts. The respondents at level 5 are nearly 25, while the respondents at level 2 and level 3 are comparatively less, and level 1 has the most minor occurrence, at nearly 5. These results indicated a pattern that higher academic pressure means higher levels of depression in the participant
+
+## Calculation of  the Mean and Standard Deviation of Both Variables
+This R code calculates and displays summary statistics for two variables in the mental_health_data dataset: depression and academic pressure. It calculates the mean for all the variables using the mean function and the standard deviation for all the variables using the sd function. The na. TRUE parameter ‘rm’ in the formula means missing values are dropped from the analysis. The results are assigned to variables named mean_depression, sd_depression, mean_academic_pressure, and sd_academic_pressure, and the calculated data will be logged into the console. These statistics help determine the centre and spread of depression and academic pressure among the survey respondents.
+```{r}
+
+# Calculate mean and standard deviation for depression
+mean_depression <- mean(mental_health_data$depression, na.rm = TRUE)
+sd_depression <- sd(mental_health_data$depression, na.rm = TRUE)
+
+# Calculate mean and standard deviation for academic_pressure
+mean_academic_pressure <- mean(mental_health_data$academic_pressure, na.rm = TRUE)
+sd_academic_pressure <- sd(mental_health_data$academic_pressure, na.rm = TRUE)
+
+# Print results
+mean_depression
+sd_depression
+mean_academic_pressure
+sd_academic_pressure
+
+
+```
+
+### Intepretation of results 
+The results also reveal that the average score on depression is 3. 22, which translates to a moderate level of depression as far as the respondents are concerned. This is evident from the standard deviation of 1. 37, which implies a significant difference in the depression scores, and therefore may experience various things. As for the academic pressure, we have a mean of 3. 78, meaning that the students are generally under slightly more pressure than the depressed subjects. The SD of (1. 13) confirms less variation in academic pressure, which shows that the responses tend more towards mean values. These statistics provide information about the prognosis of this condition and the general and academic stress of the responder.
+
+## Calculation of  the Confidence Interval of the Mean for Both Variables
+The provided R code offers 95 per cent confidence intervals for the means of depression and academic_pressure variables in the mental_health_data dataset. It then calculates the sample size for depression and academic pressure (n_depression and n_academic_pressure), where the sum of the non-missing variable is taken. For each variable, the desired margin of error is determined by guideline qt for the critical value of 95% confidence level, variance and the sample size used. The margin of error calculated is then used to compute confidence intervals or ci_depression and ci_academic_pressure and is presented as the mean plus and or minus margin of error.
+```{r}
+# Confidence interval for depression
+n_depression <- sum(!is.na(mental_health_data$depression))
+error_depression <- qt(0.975, df = n_depression - 1) * sd_depression / sqrt(n_depression)
+ci_depression <- c(mean_depression - error_depression, mean_depression + error_depression)
+
+# Confidence interval for academic_pressure
+n_academic_pressure <- sum(!is.na(mental_health_data$academic_pressure))
+error_academic_pressure <- qt(0.975, df = n_academic_pressure - 1) * sd_academic_pressure / sqrt(n_academic_pressure)
+ci_academic_pressure <- c(mean_academic_pressure - error_academic_pressure, mean_academic_pressure + error_academic_pressure)
+
+# Print confidence intervals
+ci_depression
+ci_academic_pressure
+
+```
+
+### Interpretation of result 
+
+The confidence intervals allow for a proximate range through which the population means for depression and academic pressure are likely to, which is 95% confidence. For depression, the confidence interval is 2. 93- 3. 51 meaning that in the population, the average level of depression is most likely between 2. 93 and 3. 51. For academic pressure, the interval is 3. 54 – 4. 02 means that the average value in the population of academic pressure ranges within this interval. These intervals consider the sample variability, giving a more accurate population parameter value. The range of possible measures for academic pressure is narrower compared with that of depression, indicating that the estimate of the average level of academic pressure is less doubted, meaning it is more credible because its possible range of variability is more petite.
+
+## Result Evaluation.
+
+### Distribution Description
+Histograms present the distributions of the depression and academic pressure variables. From the histogram of the depression, it is seen that the distribution is slightly inclined towards the middle, and most of the respondents had a moderate depression level of 3. Nevertheless, the distribution has tails showing smaller groups of people scoring 1-2 and another small group scoring 4-5, which denotes variation. From the histogram of the pressure the respondents faced in academics, most got a higher pressure level of 4-5. The distribution of academic pressure is slightly higher for values on the higher end. At the same time, depression is roughly symmetrical around the mean, illustrating a divergent manner in which the participants perceive and deal with these two factors.
+
+### Comparison to Similar Studies
+Analyzing these findings with similar research, there are similarities in the link between academic stress and mental health concerns, including depression. The level of academic stress was strongly correlated with the mental health issues of the students when they analyzed the results of the study(Córdova et al., 2023). In the same regard, a survey conducted by Dobos et al. (2021), found that high academic stress results in high levels of depression and anxiety. The results in this study are consonant with these studies, whereby respondents who perceived that they received high academic pressure reported high-level depressive symptoms. Hence, the observed distribution corroborates what has been posted in the literature linking academic stress and mental health issues.
+
+### Variance and its effects on analysis
+The standard deviations (1. 37 for depression and 1. 13 for academic pressure) indicated the extent of variation in the respondents’ scores. Deliberately, the relative frequency of depression exposes more variability than academic pressure, which is more centralized around ‘the mean’. This high variance in depression indicates that there is a variance in the experience of mental health within the sample, so these differences should be taken into account in future studies. This lower standard deviation aligns with the notion that most respondents are likely to go through closely related levels of pressure in the form of academics. This difference in the variance implies that while constructing the confidence intervals, the degree of certainty we have in our sample estimate for a given population is higher for academic pressure than for depression.
+
+### Learning from Variance
+
+Comparing the variance between depression and academic pressure demonstrates how each factor impacts students in specific settings(Jiang et al., 2021). This wider variance perhaps calls for non-linear coping mechanisms strategies for depression, and it indicates that the standardized method of addressing mental health concerns may not work well, and treatment plans must consider this level of variation. However, the lower variance in academic pressure suggests a more homogenous nature of stress experience among the respondents, indicating that broader changes in learning contexts may be helpful. When these variances are known, they can be used to fashion more suitable treatments for individual psychological distress and factors within academic institutions that may contribute to it.
+
+## References 
+
+Córdova, P., Patricia Gasser Gordillo, Hernán Naranjo Mejía, La, I., Alberto Grajeda Chacón, & Alberto Sanjinés Unzueta. (2023). Academic stress as a predictor of mental health in university students. Cogent Education, 10(2). https://doi.org/10.1080/2331186x.2023.2232686
+
+Dobos, B., Piko, B. F., & Mellor, D. (2021). What makes university students perfectionists? The role of childhood trauma, emotional dysregulation, academic anxiety, and social support. Scandinavian Journal of Psychology, 62(3), 443–447. https://doi.org/10.1111/sjop.12718
+
+Jiang, S., Ren, Q., Jiang, C., & Wang, L. (2021). Academic stress and depression of chinese adolescents in junior high schools: Moderated mediation model of school burnout and self-esteem. Journal of Affective Disorders, 295(1), 384–389. https://doi.org/10.1016/j.jad.2021.08.085
+
+

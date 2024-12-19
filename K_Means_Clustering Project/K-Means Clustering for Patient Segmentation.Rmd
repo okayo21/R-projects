@@ -1,0 +1,160 @@
+
+---
+title: "K-Means Clustering for Patient Segmentation"
+author: "Lakshmi Sailaja Kodavati"
+date: "2024-11-13"
+output: html_document
+---
+# Introduction 
+In this project, primary emphasis is placed on patient segmentation analysis using K-Means Clustering through the Heart Disease Prediction dataset. Patient segmentation is utilized in healthcare and helps categorize clients according to certain aspects. It can help develop individualized treatment, an intervention plan, and an effective use of resources in children care.The data set applied in the framework of this project (heart.csv) includes several features connected with the medical state of patients like age, cholesterol and characteristics such as the type of chest pain, and presence of additional angina-caused by physical activity. This particular examination aims to categorize the patients according to these parameters to look at a more detailed picture of their potential patient base and their heart disease risks.
+
+By applying K-Means Clustering, we aim to:
+
+-Identify Patient Segments: It can put patients into distinct categories, which is helpful to healthcare providers as they can discern some familiar trends among the patients.
+-Support Healthcare Decisions: Possible: Facilitate better intervention for those at high risk of getting illnesses or requiring special attention.
+-Enhance Diagnostic Efficiency: By clustering these characteristics, healthcare workers can allocate their efforts and use prevention and control measures for different categories of patients
+
+# Step 1:Data Loading
+
+In this step, the necessary libraries of R language are installed and called to manipulate, visualize and clustering of data. R-specific packages used in the study include dplyr for data manipulation and ggplot for data visualization. The cluster and factoextra library help users conduct the clustering analysis and visualize the results. The second input data is ‘‘heart.csv’’; this is read using the read.csv() function, which reads the data into a data frame. The head () function is used to preview the first few rows of the dataset to check on the structure and the variables of the data set before any other analysis.
+
+```{r}
+# Load necessary libraries
+library(dplyr)
+library(ggplot2)
+library(cluster)
+library(factoextra)
+
+# Load the dataset
+heart_data <- read.csv("heart.csv")
+
+# View the first few rows of the dataset
+head(heart_data)
+
+```
+
+# Dataset results 
+
+The dataset contains patient data with attributes connected with heart diseases. Every record refers to a patient where the columns consist of age, sex, cp(chest pain type), trestbps (resting blood pressure ), chol (cholesterol), fbs (fasting blood sugar), restecg (resting electrocardiographic results),thalach (maximum heart rate), exang (exercise-induced angina ), old peak (ST depression ), slope ( ST segment slope ), ca ( number of major vessels) and The last column holds the target variable, whether it is heart disease or not, based on the attribute value,1, for heart disease positive and 0 for heart disease negative. For example, the first row represents a 63-year male with chest pain type 3, cholesterol 233 and positive heart disease target (actual = 1).
+
+# Step 2: Data Preprocessing
+
+In the second step, data is preprocessed in order to prepare data for further analysis. First, the code examines the problem with missing values in the samples using the function sum(is. na()). Subsequently, the ‘sex’ and ‘cp’ variables are converted to factor form using the factor() function, which makes it easier to use analysis by giving them more meaningful labels. Scaling is done to assess numerical variables (age, blood pressure, cholesterol level, etc.) using the scale() function so that the data input is on the same scale for analysis.
+
+```{r}
+# Check for missing values
+sum(is.na(heart_data))
+
+# Convert categorical variables to factors
+heart_data$sex <- factor(heart_data$sex, levels = c(0, 1), labels = c("Female", "Male"))
+heart_data$cp <- factor(heart_data$cp, levels = 0:3, labels = c("Typical", "Atypical", "Non-anginal", "Asymptomatic"))
+
+# Scale the numeric variables
+scaled_data <- heart_data %>%
+  select(age, trestbps, chol, thalach, oldpeak) %>%
+  scale()
+
+# Add scaled data back to the original dataset
+heart_data_scaled <- cbind(heart_data, scaled_data)
+
+```
+
+# Step 3: Exploratory Data Analysis (EDA)
+EDA is conducted to examine the nature of the data and the degree of correlation between selected factors in Step 3 of the research process. First, the histogram of the ‘age’ variable is constructed to present the distribution of this variable, or more precisely, the frequencies of the groups of ages. Boxplot is applied to ‘chol’ to understand the cholesterol distribution between the heart disease presence/absence, which gives the variance in cholesterol intake among the two types of patients. The last step is to use a pair plot to visually analyze multiple numerical attributes (age, blood pressure, cholesterol level, etc), which can facilitate the screening of variable correlations.
+
+```{r}
+# Histogram of Age
+ggplot(heart_data, aes(x = age)) +
+  geom_histogram(bins = 10, fill = "blue", color = "black") +
+  theme_minimal() +
+  labs(title = "Age Distribution")
+
+# Boxplot for Cholesterol Levels
+ggplot(heart_data, aes(x = target, y = chol, fill = target)) +
+  geom_boxplot() +
+  labs(title = "Cholesterol Levels by Heart Disease Presence", x = "Heart Disease (0 = No, 1 = Yes)", y = "Cholesterol")
+
+# Pair plot to visualize relationships
+pairs(heart_data[, c("age", "trestbps", "chol", "thalach", "oldpeak")])
+
+```
+
+# Interpretation of  explanations
+
+The age distribution among the datasets can be viewed through the histogram presented below. The age range is found to be between 30 and 75 years old. Most people are in the age group of 50/60, with a frequency count of around 65, being the most recurrent. Moreover, ages 40–50 also present a somewhat different perspective, which ranges from about 50 people, but ages below 40 and above 70 are relatively small; it is far from zero. Such distribution implies that the observations on data are more populated for middle-aged people than young or the elderly.
+
+
+## Step 4: Model Building (K-Means Clustering)
+
+The next step is to use the Elbow Method and the K-means clustering technique to identify data similarity in the given dataset. First, the fviz_nbclust function using method = "wss" displays the Elbow Method for selecting the numbers of clusters k. The reasonable K is chosen on an idea called the elbow point, which means that the variance value is not much reduced by adding more clusters. Subsequently, with the help of the K-means algorithm, the clustering of the normalized dataset occurs by the value of K (Which in this case is 3). kmeans_result contains each data point's 'fitted' form, and fitted values are stored with heart_data for data analysis.
+```{r}
+# Determine the optimal number of clusters using the Elbow Method
+fviz_nbclust(scaled_data, kmeans, method = "wss") +
+  labs(subtitle = "Elbow Method for Choosing K")
+
+# Apply K-Means Clustering with the chosen k (e.g., k = 3)
+set.seed(123)
+kmeans_result <- kmeans(scaled_data, centers = 3, nstart = 25)
+
+# Add cluster assignments to the original dataset
+heart_data$cluster <- as.factor(kmeans_result$cluster)
+
+```
+
+## Result Interpretations 
+
+In this step, K-means clustering analysis is performed, and the method used to define the value of K, the number of clusters, is the elbow method. The plot gives the Total Within the Sum of squares (WSS) on the y-axis and the number of clusters on the x-axis. The method focuses on identifying the  “elbow point” that reveals the number of clusters beyond which the WSS ceases to change noticeably. The elbow emerges at k=3, where WSS decreases rapidly but levels off at k > 3. Thus, choosing k=3 is enough for the reasonable cluster separation for further analysis.
+
+# Step 5: Model Evaluation and Cluster Analysis
+
+
+Cluster centers sometimes results in minimal local convergence due to its greedy nature(Ikotun et al.,2023).This step focuses on how the coming clusters are analyzed to assess the quality of clustering of the model. The silhouette score is computed to evaluate how good or standardized each data point is for the actual clusters it belongs to. This score ranges from -1 to 1, where the value indicates how well the clustering boundary is formed, and the higher value of this score shows that the clusters formed are more well-defined. The fviz_silhouette function plots this score of each cluster so we can look for clusters that are far from others. Then, it applies Principal Component Analysis (PCA) to reduce the dimensions and draw clusters in a plane. The fviz_cluster function also shows the clustered points, thus providing details on how data points cluster together.
+
+```{r}
+# Calculate silhouette score to evaluate clustering quality
+silhouette_score <- silhouette(kmeans_result$cluster, dist(scaled_data))
+fviz_silhouette(silhouette_score)
+
+# Visualize clusters using PCA
+fviz_cluster(kmeans_result, data = scaled_data, geom = "point") +
+  labs(title = "K-Means Clustering of Heart Disease Patients")
+
+```
+
+## Result Intepretations
+In k-means clustering, we are given a set of n data points in d-dimensional space R/sup d/ and an integer k and the problem is to determine a set of k points in Rd(Mussabayev et al., 2022).From the silhouette analysis, the clustering quality of the model at three clusters is demonstrated. Another measure is relatively low – the average silhouette width is equal to (0.23), which means the silhouette width is relatively low. Hence, the clustering is not very good, and the overall structure is relatively weak. Further, the smallest cluster is Cluster 1, with 69 members, and it has a low silhouette width of (0.12), which indicates that the individual belonging to this cluster is closer to the other cluster’s points. On the second cluster, which constitutes 148 members of the data set, a silhouette width of (0.32) is slightly better, though still a sub-optimal level of separability. However, the last one in the number of clusters, Cluster 3, with 86 members, has an ASW of (0.16) which indicates poor cluster analysis. This implies that the data points are not very well grouped into several clusters since many of the points give low or negative silhouette scores.
+
+The K-means clustering visualization represents the heart disease patients in three clusters according to two key dimensions, Dim1 and Dim2. Cluster 1 is located predominantly in the bottom left and overlaps moderately with other clusters (red circles). Cluster 2 (green triangles) is separated in the centre, indicating a different sub-cluster. Cluster 3 (blue squares) is slightly overlapping the top left area. It can be seen that Dim1 and Dim2 account for 36.1% and 21.6%, respectively, of the variance in the data. The overlapping boundaries also show that although clear clusters exist, some patients belong to different groups simultaneously.
+
+# Step 6: Result Interpretation and Conclusion
+
+In this last step, each characteristic of the clusters highlighted within the K-means clustering is examined to interpret the outcomes. Using the ‘aggregate’ function, the mean of each variable within each cluster is obtained, giving an idea of what each group is like. For example, one can identify such trends as the average age or cholesterol level or the percentage of patients with heart disease within clusters and, therefore, get an insight into the patient clusters’ profile. Finally, the long list of clustered data sets, where each patient gets identified into a cluster, is saved in a CSV file format called” segmented_patients.csv” for other purposes of analysis, record, or future use
+
+```{r}
+# Analyze the characteristics of each cluster
+aggregate(. ~ cluster, heart_data, mean)
+
+# Save segmented data to CSV
+write.csv(heart_data, "segmented_patients.csv", row.names = FALSE)
+
+```
+## Interpretations of result 
+
+The clusters identified for each category of heart disease patients based on the set of health indices are significantly different.
+
+Cluster 1, with 60.48 of mean age, has higher cholesterol (292.14), middle resting blood pressure (150.88), and exercise-related angina less frequently (exang = 0.41). Cluster 2 is the youngest with higher thali (mean = 164.11) and lower chest (mean = 225.24) yet health riskier according to the slightly higher FBS = 0.12. Cluster 3 is younger than average (mean age 59.11), with an intermediate cholesterol score (228.41) but significantly lower resting blood pressure (127.13) and more numerous reports of exercised-induced angina (exang=0.53). They noted that in cases of heart disease, Cluster 2 had the highest figure of 0.76, while Cluster 3 had the lowest figure of 0.27. This segmentation helps address treatment for several types of patient profiles.
+
+# Conclusion
+
+This study establishes using K-Means Clustering to partition patients according to specific health characteristics, including age, cholesterol, blood pressure, and other characteristics relating to heart disease. Using the elbow method to decide the number of clusters, the analysis revealed three clusters of patients. Every cluster had features that would help specify patient types and adjust the healthcare treatments. However, based on matching criteria analysis and silhouette analysis, the conclusion is that there needs to be better clustering quality. However, the results can be further beneficial to understanding patient segmentation and, thus, more effective healthcare interventions for patients with heart disease.
+
+# Refernces
+
+Ikotun, A. M., Ezugwu, A. E., Abualigah, L., Abuhaija, B., & Heming, J. (2023). K-means clustering algorithms: A comprehensive review, variants analysis, and advances in the era of big data. Information Sciences, 622, 178-210.
+
+Mussabayev, R., Mladenovic, N., Jarboui, B., & Mussabayev, R. (2022). How to Use K-means for Big Data Clustering? Pattern Recognition, 109269. https://doi.org/10.1016/j.patcog.2022.109269
+
+
+
+
+
